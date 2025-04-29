@@ -1,44 +1,49 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Search, Mic } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onSearch: (query: string) => void
+}
+
+export default function SearchBar({ onSearch }: SearchBarProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      // In a real implementation, this would navigate to search results
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, "_blank")
+      onSearch(searchQuery)
     }
   }
 
   return (
-    <form onSubmit={handleSearch} className="w-full">
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
+    <div className="w-full">
+      <form onSubmit={handleSearch} className="relative">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <Input
+            type="search"
+            placeholder="Search the web"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-20 py-6 bg-gray-900 border-gray-700 text-white rounded-full w-full focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-        <input
-          type="search"
-          className="block w-full p-4 pl-12 pr-24 rounded-full bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Search the web"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          required
-        />
-        <div className="absolute right-4 bottom-0 top-0 flex items-center">
-          <button type="button" className="p-2 text-gray-400 hover:text-white">
-            <Mic className="h-5 w-5" />
-          </button>
-          <button type="submit" className="ml-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-md">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
+          <Button type="button" variant="ghost" size="icon" className="rounded-full">
+            <Mic className="h-5 w-5 text-gray-400" />
+          </Button>
+          <Button type="submit" variant="ghost" className="bg-gray-800 hover:bg-gray-700 text-white">
             Search
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   )
 }

@@ -1,33 +1,80 @@
+"use client"
+
+import { useState } from "react"
 import SearchBar from "@/components/search-bar"
-import ColorChangingLogo from "@/components/color-changing-logo"
-import MichaelAI from "@/components/michael-ai"
+import Header from "@/components/header"
 import Extensions from "@/components/extensions"
 import LoginButton from "@/components/login-button"
-import QuickLinks from "@/components/quick-links"
+import MichaelAssistant from "@/components/michael-assistant"
+import SearchResults from "@/components/search-results"
 
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="w-full p-4">
-        <div className="flex justify-end items-center space-x-4">
-          <Extensions />
-          <LoginButton />
-        </div>
-      </header>
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showAssistant, setShowAssistant] = useState(false)
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 -mt-20">
-        <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
-          <ColorChangingLogo />
-          <div className="w-full mt-8">
-            <SearchBar />
-          </div>
-          <div className="mt-8">
-            <QuickLinks />
-          </div>
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    setIsSearching(true)
+
+    // Simulate search results
+    setTimeout(() => {
+      const mockResults = [
+        {
+          title: query + " - Wikipedia",
+          url: "https://en.wikipedia.org/wiki/" + query.replace(/\s+/g, "_"),
+          description: "Wikipedia article about " + query,
+        },
+        {
+          title: query + " | Official Website",
+          url: "https://" + query.replace(/\s+/g, "") + ".com",
+          description: "The official website for " + query,
+        },
+        {
+          title: query + " - Latest News",
+          url: "https://news.google.com/search?q=" + query,
+          description: "Latest news about " + query,
+        },
+        {
+          title: query + " - Images",
+          url: "https://images.google.com/search?q=" + query,
+          description: "Images related to " + query,
+        },
+        {
+          title: query + " - Videos",
+          url: "https://www.youtube.com/results?search_query=" + query,
+          description: "Videos about " + query,
+        },
+      ]
+      setSearchResults(mockResults)
+      setIsSearching(false)
+    }, 1000)
+  }
+
+  const toggleAssistant = () => {
+    setShowAssistant(!showAssistant)
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <Header toggleAssistant={toggleAssistant} />
+      <main className="container mx-auto px-4 pt-24 pb-12 flex flex-col items-center">
+        <div className="w-full max-w-2xl mx-auto">
+          <SearchBar onSearch={handleSearch} />
+
+          {searchQuery && <SearchResults query={searchQuery} results={searchResults} isLoading={isSearching} />}
+
+          {!searchQuery && (
+            <div className="mt-8 flex justify-between items-center">
+              <Extensions />
+              <LoginButton />
+            </div>
+          )}
         </div>
       </main>
 
-      <MichaelAI />
+      {showAssistant && <MichaelAssistant onClose={toggleAssistant} />}
     </div>
   )
 }
