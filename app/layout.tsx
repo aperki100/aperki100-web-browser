@@ -1,13 +1,10 @@
 import type React from "react"
 import "@/app/globals.css"
-import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const inter = Inter({ subsets: ["latin"] })
-
 export const metadata = {
-  title: "aperki100",
-  description: "A custom search experience",
+  title: "Aperki100 Browser",
+  description: "A custom web browser interface",
     generator: 'v0.dev'
 }
 
@@ -18,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="bg-black">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
