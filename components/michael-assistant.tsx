@@ -1,154 +1,197 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { X, Mic, Clock, Search, Play } from "lucide-react"
+import { Bot, X, Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 
-interface MichaelAssistantProps {
-  onClose: () => void
-}
-
-export default function MichaelAssistant({ onClose }: MichaelAssistantProps) {
+export default function MichaelAssistant() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [messages, setMessages] = useState<{ text: string; sender: "user" | "michael" }[]>([
+    { text: "Hello, I'm Michael, your AI assistant. How can I help you today?", sender: "michael" },
+  ])
+  const [input, setInput] = useState("")
   const [isListening, setIsListening] = useState(false)
-  const [transcript, setTranscript] = useState("")
-  const [response, setResponse] = useState("")
-  const [currentTime, setCurrentTime] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Speech recognition setup
+  const SpeechRecognition =
+    typeof window !== "undefined" ? window.SpeechRecognition || (window as any).webkitSpeechRecognition : null
+  const recognition = SpeechRecognition ? new SpeechRecognition() : null
+
+  if (recognition) {
+    recognition.continuous = false
+    recognition.lang = "en-US"
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setInput(transcript)
+      handleSend(transcript)
+      setIsListening(false)
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+    }
+  }
 
   useEffect(() => {
-    // Update time every second
-    const timeInterval = setInterval(() => {
-      const now = new Date()
-      setCurrentTime(now.toLocaleTimeString())
-    }, 1000)
+    // Scroll to bottom of messages
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
 
-    // Initialize audio
-    audioRef.current = new Audio("/jarvis.mp3") // This would be a Jarvis-like sound effect
-
-    return () => {
-      clearInterval(timeInterval)
-      if (audioRef.current) {
-        audioRef.current.pause()
-      }
+  useEffect(() => {
+    // Listen for activate Michael event
+    const handleActivate = () => {
+      setIsOpen(true)
+      setTimeout(() => {
+        startListening()
+      }, 500)
     }
+
+    window.addEventListener("activateMichael", handleActivate)
+    return () => window.removeEventListener("activateMichael", handleActivate)
   }, [])
 
   const startListening = () => {
-    setIsListening(true)
-    setTranscript("")
-    setResponse("")
-
-    // Simulate speech recognition
-    setTimeout(() => {
-      setIsListening(false)
-      const mockCommands = ["What time is it?", "Open YouTube", "Search for weather in New York", "Play a game"]
-      const randomCommand = mockCommands[Math.floor(Math.random() * mockCommands.length)]
-      setTranscript(randomCommand)
-      processCommand(randomCommand)
-    }, 2000)
+    if (recognition) {
+      try {
+        recognition.start()
+        setIsListening(true)
+      } catch (error) {
+        console.error("Error starting speech recognition:", error)
+      }
+    } else {
+      alert("Speech recognition is not supported in your browser")
+    }
   }
 
-  const processCommand = (command: string) => {
-    setIsLoading(true)
+  const handleSend = (text = input) => {
+    if (!text.trim()) return
 
-    // Play Jarvis sound
-    if (audioRef.current) {
-      audioRef.current.play().catch((e) => console.error("Audio play failed:", e))
-    }
+    // Add user message
+    setMessages((prev) => [...prev, { text, sender: "user" }])
+    setInput("")
 
+    // Process the request
     setTimeout(() => {
-      let responseText = ""
+      let response = ""
 
-      if (command.toLowerCase().includes("time")) {
-        responseText = `The current time is ${currentTime}.`
-      } else if (command.toLowerCase().includes("open youtube")) {
-        responseText = "Opening YouTube for you."
-        window.open("https://www.youtube.com", "_blank")
-      } else if (command.toLowerCase().includes("search")) {
-        const searchTerm = command.replace(/search for/i, "").trim()
-        responseText = `Searching for "${searchTerm}".`
-      } else if (command.toLowerCase().includes("game")) {
-        responseText = "I can open a simple game for you. Would you like to play?"
+      // Simple response logic
+      const lowerText = text.toLowerCase()
+
+      if (lowerText.includes("time")) {
+        response = `The current time is ${new Date().toLocaleTimeString()}.`
+      } else if (lowerText.includes("date")) {
+        response = `Today is ${new Date().toLocaleDateString()}.`
+      } else if (lowerText.includes("open") && lowerText.includes("youtube")) {
+        response = "Opening YouTube for you."
+        window.open("https://youtube.com", "_blank")
+      } else if (lowerText.includes("open") && lowerText.includes("game")) {
+        response = "Opening a simple game for you."
+        window.open("https://play2048.co", "_blank")
+      } else if (lowerText.includes("who are you")) {
+        response =
+          "I am Michael, your AI assistant with a voice inspired by Jarvis from Iron Man. I can help you search the web, open applications, tell the time, and much more."
       } else {
-        responseText = "I'm sorry, I didn't understand that command."
+        response = `I've searched for "${text}" and found some interesting results. Would you like me to tell you more about any specific aspect?`
       }
 
-      setResponse(responseText)
-      setIsLoading(false)
+      // Add Michael's response
+      setMessages((prev) => [...prev, { text: response, sender: "michael" }])
 
-      // Text-to-speech simulation
-      if ("speechSynthesis" in window) {
-        const speech = new SpeechSynthesisUtterance(responseText)
-        speech.rate = 0.9
-        speech.pitch = 0.8
-        speech.volume = 1
-        window.speechSynthesis.speak(speech)
+      // Speak the response
+      speakText(response)
+    }, 1000)
+  }
+
+  const speakText = (text: string) => {
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(text)
+
+      // Try to get a deep male voice similar to Jarvis
+      const voices = window.speechSynthesis.getVoices()
+      const preferredVoice = voices.find((voice) => voice.name.includes("Male") || voice.name.includes("Daniel"))
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice
       }
-    }, 1500)
+
+      utterance.pitch = 0.9 // Slightly lower pitch
+      utterance.rate = 0.9 // Slightly slower rate
+
+      window.speechSynthesis.speak(utterance)
+    }
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-96 bg-gray-900 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-20">
-      <div className="flex justify-between items-center bg-gray-800 p-4">
-        <div className="flex items-center">
-          <div className="h-3 w-3 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-          <h3 className="font-medium">Michael (Jarvis Voice)</h3>
+    <>
+      {/* Michael Assistant Button */}
+      <Button
+        className="fixed bottom-4 right-4 rounded-full w-12 h-12 bg-blue-600 hover:bg-blue-700 flex items-center justify-center"
+        onClick={() => setIsOpen(true)}
+      >
+        <Bot className="h-6 w-6" />
+      </Button>
+
+      {/* Michael Assistant Dialog */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md bg-gray-900 border-gray-800 text-white">
+            <div className="flex justify-between items-center p-4 border-b border-gray-800">
+              <h2 className="text-xl font-bold text-blue-500">Michael Assistant</h2>
+              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <CardContent className="p-0">
+              <div className="h-80 overflow-y-auto p-4 space-y-4">
+                {messages.map((message, index) => (
+                  <div key={index} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[80%] p-3 rounded-lg ${
+                        message.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-white"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="p-4 border-t border-gray-800">
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={`${isListening ? "bg-red-600 text-white" : "bg-gray-800 text-white"}`}
+                    onClick={startListening}
+                  >
+                    <Mic className="h-5 w-5" />
+                  </Button>
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                    placeholder="Ask Michael something..."
+                    className="flex-1 bg-gray-800 border-gray-700 text-white rounded-md px-3 py-2"
+                  />
+                  <Button
+                    variant="outline"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => handleSend()}
+                  >
+                    Send
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="p-4 h-64 overflow-y-auto">
-        {transcript && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-400">You said:</p>
-            <p className="bg-gray-800 p-2 rounded-lg mt-1">{transcript}</p>
-          </div>
-        )}
-
-        {isLoading && (
-          <div className="flex justify-center items-center h-16">
-            <div className="h-2 w-2 bg-blue-500 rounded-full mr-1 animate-bounce"></div>
-            <div
-              className="h-2 w-2 bg-blue-500 rounded-full mr-1 animate-bounce"
-              style={{ animationDelay: "0.2s" }}
-            ></div>
-            <div className="h-2 w-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
-          </div>
-        )}
-
-        {response && (
-          <div>
-            <p className="text-sm text-gray-400">Michael:</p>
-            <p className="bg-blue-900 p-2 rounded-lg mt-1">{response}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="p-4 bg-gray-800 flex justify-between items-center">
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Clock className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Search className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Play className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <Button
-          onClick={startListening}
-          variant="outline"
-          size="icon"
-          className={`rounded-full ${isListening ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}`}
-        >
-          <Mic className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+      )}
+    </>
   )
 }

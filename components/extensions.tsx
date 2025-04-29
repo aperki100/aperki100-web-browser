@@ -1,4 +1,4 @@
-import { PlusCircle, Settings, Shield, Download } from "lucide-react"
+import { PlusCircle, Settings, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -22,10 +22,6 @@ export default function Extensions() {
         <DropdownMenuItem className="hover:bg-gray-800 cursor-pointer">
           <Shield className="mr-2 h-4 w-4" />
           <span>Privacy Extensions</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="hover:bg-gray-800 cursor-pointer">
-          <Download className="mr-2 h-4 w-4" />
-          <span>Download Manager</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

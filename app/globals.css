@@ -11,7 +11,7 @@
   --popover-foreground: 0 0% 100%;
   --primary: 221 83% 53%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 15%;
+  --secondary: 0 0% 10%;
   --secondary-foreground: 0 0% 100%;
   --muted: 0 0% 15%;
   --muted-foreground: 0 0% 70%;
@@ -27,18 +27,4 @@
 body {
   background-color: black;
   color: white;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

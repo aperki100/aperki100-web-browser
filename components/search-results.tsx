@@ -1,55 +1,40 @@
-import { Loader2 } from "lucide-react"
-
-interface SearchResult {
-  title: string
-  url: string
-  description: string
-}
-
 interface SearchResultsProps {
   query: string
-  results: SearchResult[]
+  results: string[]
   isLoading: boolean
 }
 
 export default function SearchResults({ query, results, isLoading }: SearchResultsProps) {
   if (isLoading) {
     return (
-      <div className="mt-8 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="p-4 bg-gray-900 rounded-lg">
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse"></div>
+          <p>Searching for "{query}"...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="mt-8 space-y-6">
-      <p className="text-sm text-gray-400">
-        About {results.length} results for "{query}"
-      </p>
-
-      {results.map((result, index) => (
-        <div key={index} className="border-b border-gray-800 pb-4">
-          <div className="flex flex-col">
-            <a
-              href={result.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-gray-400 mb-1 hover:underline truncate"
-            >
-              {result.url}
-            </a>
-            <a
-              href={result.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xl text-blue-500 hover:underline"
-            >
-              {result.title}
-            </a>
+    <div className="bg-gray-900 rounded-lg overflow-hidden">
+      <div className="p-4 border-b border-gray-800">
+        <p className="text-sm text-gray-400">
+          About {results.length} results for "{query}"
+        </p>
+      </div>
+      <div className="divide-y divide-gray-800">
+        {results.map((result, index) => (
+          <div key={index} className="p-4 hover:bg-gray-800 cursor-pointer">
+            <h3 className="text-blue-400 hover:underline">{result}</h3>
+            <p className="text-green-500 text-sm">https://aperki100.com/result/{index}</p>
+            <p className="text-gray-400 mt-1">
+              This is a sample search result description for the query "{query}". Click to view more information about
+              this result.
+            </p>
           </div>
-          <p className="mt-1 text-gray-300">{result.description}</p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
