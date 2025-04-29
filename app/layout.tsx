@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata = {
   title: "Aperki100 Browser",
-  description: "A custom web browser interface",
+  description: "A custom web browser interface with AI assistant",
     generator: 'v0.dev'
 }
 

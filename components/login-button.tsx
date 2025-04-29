@@ -20,25 +20,40 @@ export default function LoginButton() {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     // In a real implementation, this would authenticate the user
     console.log("Login attempted with:", email)
+    setIsLoggedIn(true)
     setIsOpen(false)
+  }
+
+  const handleLogout = () => {
+    setIsLoggedIn(false)
+  }
+
+  if (isLoggedIn) {
+    return (
+      <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white" onClick={handleLogout}>
+        <User className="h-5 w-5 mr-1" />
+        Logout
+      </Button>
+    )
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700">
-          <User className="mr-2 h-4 w-4" />
-          Login
+        <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
+          <User className="h-5 w-5 mr-1" />
+          Sign in
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-gray-900 border-gray-700 text-white">
         <DialogHeader>
-          <DialogTitle>Login to Aperki100</DialogTitle>
+          <DialogTitle>Sign in to Aperki100</DialogTitle>
           <DialogDescription className="text-gray-400">Enter your credentials to access your account</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleLogin} className="space-y-4">
